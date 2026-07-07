@@ -14,6 +14,9 @@ importers:
       lucide-solid:
         specifier: ^1.23.0
         version: 1.23.0(solid-js@1.9.14)
+      shaka-player:
+        specifier: ^5.1.13
+        version: 5.1.13
       solid-js:
         specifier: ^1.9.13
         version: 1.9.14
@@ -594,6 +597,10 @@ packages:
   seroval@1.5.4:
     resolution: {integrity: sha512-46uFvgrXTVxZcUorgSSRZ4y+ieqLLQRMlG4bnCZKW3qI6BZm7Rg4ntMW4p1mILEEBZWrFlcpp0AyIIlM6jD9iw==}
     engines: {node: '>=10'}
+
+  shaka-player@5.1.13:
+    resolution: {integrity: sha512-bi1lWymlIgSbCuSwLu4v3Y+hNCX7PEk6LLcuo9dZ04gcbJnyR3FdPgHNGxaBJg4mrLKttlxOuXJWllM8DA/meg==}
+    engines: {node: '>=18'}
 
   solid-js@1.9.14:
     resolution: {integrity: sha512-sAEXC0Kk0S1EDg+8ysEWJDbYhA3RRoEjwuySUGlKIemeo0I5YZfOyumNjNs9Sv3y2nmhD+0rW66ag2HsMuQiGQ==}
@@ -1194,6 +1201,8 @@ snapshots:
       seroval: 1.5.4
 
   seroval@1.5.4: {}
+
+  shaka-player@5.1.13: {}
 
   solid-js@1.9.14:
     dependencies:
