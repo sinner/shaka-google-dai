@@ -1,0 +1,38 @@
+---
+description: File and symbol naming conventions
+alwaysApply: true
+---
+
+# Naming Conventions
+
+Use one convention per layer. Do not mix kebab-case and camelCase in `src/`.
+
+| Layer | File name | Export name | Example |
+|-------|-----------|-------------|---------|
+| **Hooks** | `camelCase`, prefix `use` | same as file | `useShakaDaiPlayer.ts` → `useShakaDaiPlayer` |
+| **Components** | `PascalCase` | `PascalCase` | `VideoPlayer.tsx` → `VideoPlayer` |
+| **Pages** | `PascalCase` | default export | `ManualAssetKeyPage.tsx` |
+| **Services** | `camelCase` | `camelCase` | `api.ts` → `apiRequest` |
+| **Stores** | `camelCase` | `camelCase` | `daiEventsStore.ts` → `daiEventsStore` |
+| **Lib / utils** | `camelCase` | `camelCase` | `logger.ts` → `logger` |
+| **Types** | `camelCase` | `PascalCase` types | `dai.ts` → `StreamLoadConfig` |
+| **Data (JSON)** | `kebab-case` | — | `live-dai-samples.json` |
+
+## Rules
+
+- Hook files must start with `use` and use **camelCase** — never `ad-event-handlers.ts`.
+- Component files match the component name in **PascalCase**.
+- Service modules use **camelCase** file names (`api.ts`, `channels.ts`).
+- Only static data files under `src/data/` may use **kebab-case**.
+- Barrel files stay as `index.ts`.
+
+## Logging
+
+Use `logger` from `@/lib/logger` for debug, info, events, warnings, and errors — not raw `console.log` scattered in the codebase.
+
+```typescript
+import { logger } from '@/lib/logger'
+
+logger.event('Shaka ad event', { type, detail })
+logger.error('Failed to load stream', { error })
+```

@@ -1,58 +1,155 @@
-import { onMount, onCleanup } from 'solid-js';
-import shaka from 'shaka-player';
+import { createEffect, mergeProps, Show, splitProps, type Accessor } from 'solid-js'
+import { Volume2, VolumeX } from 'lucide-solid'
+import { Button } from '@/components/ui'
+import { cn } from '@/lib/cn'
 
-
-type DrmVideoPlayerProps = {
-  streamUrl: string;
-  drmLicenseUrl: string;
+export type VideoPlayerProps = {
+  class?: string
+  loading?: boolean
+  muted?: boolean
+  isAdBreakActive?: Accessor<boolean>
+  onToggleMute?: () => void
+  onReady?: (elements: {
+    video: HTMLVideoElement
+    adContainer: HTMLDivElement
+    clientSideAdContainer: HTMLDivElement
+  }) => void
 }
 
+export function VideoPlayer(rawProps: VideoPlayerProps) {
+  const props = mergeProps(
+    { loading: false, muted: true, isAdBreakActive: () => false },
+    rawProps,
+  )
+  const [local] = splitProps(props, [
+    'class',
+    'loading',
+    'muted',
+    'isAdBreakActive',
+    'onToggleMute',
+    'onReady',
+  ])
 
-export default function DrmVideoPlayer(props: DrmVideoPlayerProps) {
-  let videoRef: HTMLVideoElement | undefined;
-  let player: shaka.Player | undefined;
+  let videoElement: HTMLVideoElement | undefined
+  let adContainerElement: HTMLDivElement | undefined
+  let clientSideAdContainerElement: HTMLDivElement | undefined
 
-  onMount(() => {
-    // 1. Install polyfills if needed (useful for Safari/FairPlay)
-    shaka.polyfill.installAll();
-
-    // 2. Initialize Shaka Player
-    player = new shaka.Player(videoRef);
-
-    // 3. Configure DRM servers
-    player.configure({
-      drm: {
-        servers: {
-          'com.widevine.alpha': props.drmLicenseUrl,
-          'com.microsoft.playready': props.drmLicenseUrl,
-          'com.apple.fps': props.drmLicenseUrl // For FairPlay
-        }
-      }
-    });
-
-    // 4. Load the video
-    player.load(props.streamUrl).then(() => {
-      console.log('The video has now been loaded!');
-    }).catch((error) => {
-      console.error('Error code', error);
-    });
-  });
-
-  // 5. Clean up the player on unmount
-  onCleanup(() => {
-    if (player) {
-      player.destroy();
+  const notifyReady = () => {
+    if (
+      videoElement &&
+      adContainerElement &&
+      clientSideAdContainerElement &&
+      local.onReady
+    ) {
+      local.onReady({
+        video: videoElement,
+        adContainer: adContainerElement,
+        clientSideAdContainer: clientSideAdContainerElement,
+      })
     }
-  });
+  }
+
+  const setVideoRef = (element: HTMLVideoElement | undefined) => {
+    videoElement = element
+    if (videoElement) {
+      videoElement.muted = local.muted ?? true
+    }
+    notifyReady()
+  }
+
+  const setAdContainerRef = (element: HTMLDivElement | undefined) => {
+    adContainerElement = element
+    notifyReady()
+  }
+
+  const setClientSideAdContainerRef = (element: HTMLDivElement | undefined) => {
+    clientSideAdContainerElement = element
+    notifyReady()
+  }
+
+  createEffect(() => {
+    if (videoElement) {
+      videoElement.muted = local.muted ?? true
+    }
+  })
+
+  createEffect(() => {
+    if (!videoElement) {
+      return
+    }
+
+    if (local.isAdBreakActive()) {
+      videoElement.style.pointerEvents = 'none'
+      return
+    }
+
+    videoElement.style.pointerEvents = 'auto'
+  })
+
+  createEffect(() => {
+    notifyReady()
+  })
+
+  const handleToggleMute = (event: MouseEvent) => {
+    event.stopPropagation()
+    local.onToggleMute?.()
+  }
 
   return (
-    <div>
-      <video
-        ref={videoRef}
-        width="640"
-        controls
-        autoplay
-      />
+    <div
+      class={cn(
+        'mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-border',
+        'bg-black shadow-2xl shadow-primary-400/10',
+        local.class,
+      )}
+    >
+      <div class="relative aspect-video w-full bg-black">
+        <video
+          ref={setVideoRef}
+          class="absolute inset-0 z-0 size-full object-contain"
+          controls={!local.isAdBreakActive()}
+          playsinline
+          autoplay
+          muted
+        />
+        <div
+          ref={setAdContainerRef}
+          class={cn(
+            'dai-ad-container absolute inset-0 z-10',
+            local.isAdBreakActive()
+              ? 'pointer-events-auto'
+              : 'pointer-events-none',
+          )}
+        />
+        <div ref={setClientSideAdContainerRef} class="hidden" aria-hidden="true" />
+
+        <div class="pointer-events-none absolute inset-0 z-40">
+          <div class="pointer-events-auto absolute top-3 right-3">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              aria-label={local.muted ? 'Unmute player' : 'Mute player'}
+              onClick={handleToggleMute}
+            >
+              {local.muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              {local.muted ? 'Unmute' : 'Mute'}
+            </Button>
+          </div>
+
+          <Show when={local.isAdBreakActive()}>
+            <div class="absolute top-3 left-3 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-100 ring-1 ring-amber-400/40">
+              Ad break — playback cannot be paused
+            </div>
+          </Show>
+        </div>
+
+        {local.loading && (
+          <div class="absolute inset-0 z-20 flex items-center justify-center bg-black/50 text-sm text-white">
+            Loading stream…
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }

@@ -9,13 +9,18 @@ alwaysApply: false
 ## Folder responsibilities
 
 ```
-src/pages/          Route-level screens (compose UI + local state)
-src/components/ui/  Reusable primitives (Button, Input, …)
-src/components/     Feature-specific or layout components
-src/services/       API and domain logic (no JSX)
+src/pages/          Route-level screens (PascalCase files)
+src/components/ui/  Reusable primitives (PascalCase files)
+src/components/     Feature-specific or layout components (PascalCase)
+src/hooks/          Solid hooks (camelCase, useXxx.ts)
+src/services/       API and domain logic (camelCase files)
+src/stores/         Shared state (camelCase files)
+src/lib/            Pure utilities (camelCase files)
+src/data/           Static JSON (kebab-case files only)
 src/routes/         Router config only
-src/lib/            Pure utilities (cn, formatters, validators)
 ```
+
+See `naming-conventions.mdc` for the full naming table.
 
 ## Components
 
@@ -47,6 +52,7 @@ return <input class={cn(baseStyles, local.class)} {...rest} />
 
 - Icons: `lucide-solid` only.
 - Path alias: `@/` for all `src/` imports. No deep relative paths like `../../`.
+- Logging: use `@/lib/logger` for debug, events, and errors.
 
 ## What to avoid
 

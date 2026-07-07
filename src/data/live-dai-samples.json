@@ -1,0 +1,27 @@
+{
+  "networkCode": "21775744923",
+  "defaultImaApiKey": "8B1DA006064BD04C5CD474456AB8C9BDA790628E3184E95074EC65E308331EBC",
+  "samples": [
+    {
+      "id": "bbb-live",
+      "label": "Big Buck Bunny (Live)",
+      "assetKey": "c-rArva4ShKVIAkNfy6HUQ",
+      "streamFormat": "HLS",
+      "requiresApiKey": false
+    },
+    {
+      "id": "bbb-live-api-key",
+      "label": "Big Buck Bunny (Live) — Requires API Key",
+      "assetKey": "XYrjlG09QTa8pxAo5Fzjww",
+      "streamFormat": "HLS",
+      "requiresApiKey": true
+    },
+    {
+      "id": "tos-live",
+      "label": "Tears of Steel (Live)",
+      "assetKey": "PSzZMzAkSXCmlJOWDmRj8Q",
+      "streamFormat": "DASH",
+      "requiresApiKey": false
+    }
+  ]
+}

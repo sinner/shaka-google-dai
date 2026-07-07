@@ -40,4 +40,12 @@
   #root {
     @apply min-h-dvh;
   }
+
+  .dai-ad-container:not([ad-active]) {
+    pointer-events: none;
+  }
+
+  .dai-ad-container[ad-active] {
+    pointer-events: auto;
+  }
 }
