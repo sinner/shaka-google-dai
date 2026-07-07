@@ -1,0 +1,56 @@
+---
+description: SolidJS + TypeScript conventions for this SPA
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# SolidJS Standards
+
+## Folder responsibilities
+
+```
+src/pages/          Route-level screens (compose UI + local state)
+src/components/ui/  Reusable primitives (Button, Input, …)
+src/components/     Feature-specific or layout components
+src/services/       API and domain logic (no JSX)
+src/routes/         Router config only
+src/lib/            Pure utilities (cn, formatters, validators)
+```
+
+## Components
+
+- **Pages**: default export, one file per route in `src/pages/`.
+- **UI & layout**: named exports; barrel re-export from `index.ts`.
+- Use `splitProps` to separate local props from passthrough DOM props.
+- Export a `*Props` type alongside each reusable component.
+- Use `createSignal` for local page state; lift only when a second consumer appears.
+
+```tsx
+// ✅ GOOD — split local vs passthrough props
+const [local, rest] = splitProps(props, ['label', 'class'])
+return <input class={cn(baseStyles, local.class)} {...rest} />
+```
+
+## Styling
+
+- Tailwind only. Use `cn()` from `@/lib/cn` to merge classes.
+- Reuse design tokens from `src/index.css` (`bg-surface`, `text-text-muted`, `border-border`, etc.).
+- Do not add CSS files per component. Do not inline hex colors — use theme tokens.
+
+## Data & side effects
+
+- All HTTP goes through `src/services/`. Pages call services, not `fetch`.
+- Keep services as plain objects or functions — no classes.
+- Type API payloads and responses explicitly.
+
+## Icons & imports
+
+- Icons: `lucide-solid` only.
+- Path alias: `@/` for all `src/` imports. No deep relative paths like `../../`.
+
+## What to avoid
+
+- `createEffect` / `createMemo` unless there is a measured need.
+- Global stores, context providers, or custom hooks for logic used once.
+- Copy-pasting UI markup — extend or compose existing `@/components/ui` instead.
+- Over-abstracted prop APIs (e.g. one mega-component with 20 optional props).

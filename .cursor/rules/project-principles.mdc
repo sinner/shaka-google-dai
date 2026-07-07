@@ -1,0 +1,43 @@
+---
+description: Core principles — SOLID, KISS, DRY, minimal scope
+alwaysApply: true
+---
+
+# Project Principles
+
+## KISS — Keep It Simple
+
+- Solve the current requirement only. No speculative abstractions, wrappers, or libraries.
+- Prefer plain functions and components over classes, factories, or design patterns.
+- Do not add state management (stores, context) until at least two unrelated pages need shared state.
+- A small, obvious diff beats a clever architecture.
+
+## SOLID (adapted for this SPA)
+
+| Principle | Rule |
+|-----------|------|
+| **Single Responsibility** | Pages compose UI. UI components render. Services call APIs. Routes wire navigation. |
+| **Open/Closed** | Extend via props, variants, or new service methods — do not modify working code for hypothetical cases. |
+| **Interface Segregation** | Keep prop types small and focused. Split large components instead of adding optional props for every edge case. |
+| **Dependency Inversion** | Pages and components never call `fetch` directly. Use `src/services/`. |
+
+## DRY — Don't Repeat Yourself
+
+Extract when the **same logic or markup appears twice** (or is clearly about to):
+
+| Repeated in… | Extract to… |
+|--------------|-------------|
+| 2+ pages or components | `src/lib/` utility function |
+| 2+ UI patterns | `src/components/ui/` component |
+| 2+ API calls for same resource | `src/services/` method |
+
+Do **not** extract:
+- One-off code used in a single place
+- Two lines that happen to look similar but serve different purposes
+- Premature "shared" helpers before the second use exists
+
+## Scope & change discipline
+
+- Touch only files required by the task.
+- Match existing naming, imports (`@/`), and folder placement.
+- Reuse `@/components/ui` before creating new styled elements inline.
