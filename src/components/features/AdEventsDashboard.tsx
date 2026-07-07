@@ -69,7 +69,7 @@ export function AdEventsDashboard() {
 
       <div class="overflow-hidden rounded-lg border border-border bg-black/20">
         <div class="max-h-96 overflow-auto" ref={(element) => (scrollContainerRef = element)}>
-          <table class="w-full min-w-160 border-collapse text-left text-xs">
+          <table class="w-full min-w-[40rem] border-collapse text-left text-xs">
             <thead class="sticky top-0 z-10 bg-neutral-variant-800/95 backdrop-blur-sm">
               <tr class="border-b border-border text-text-muted">
                 <th class="px-3 py-2.5 font-medium">Time</th>
