@@ -1,5 +1,4 @@
 import { logger } from '@/lib/logger'
-import { daiEventsStore } from '@/stores/daiEventsStore'
 
 function isDaiInteractionUrl(url: string): boolean {
   return (
@@ -8,7 +7,9 @@ function isDaiInteractionUrl(url: string): boolean {
   )
 }
 
-export function observeDaiInteractionPings(): () => void {
+export function observeDaiInteractionPings(
+  onPing?: (url: string) => void,
+): () => void {
   if (typeof PerformanceObserver === 'undefined') {
     logger.warn('PerformanceObserver unavailable; interaction pings will not be tracked')
     return () => {}
@@ -23,7 +24,7 @@ export function observeDaiInteractionPings(): () => void {
 
     seen.add(url)
     logger.event('DAI interaction ping', { url })
-    daiEventsStore.logInteractionPing(url)
+    onPing?.(url)
   }
 
   const observer = new PerformanceObserver((list) => {

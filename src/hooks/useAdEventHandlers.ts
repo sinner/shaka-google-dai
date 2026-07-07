@@ -18,7 +18,9 @@ export function registerAdEventListeners(
   adManager: AdManager,
   options: RegisterAdEventListenersOptions = {},
 ): () => void {
-  const stopInteractionObserver = observeDaiInteractionPings()
+  const stopInteractionObserver = observeDaiInteractionPings((url) => {
+    daiEventsStore.logInteractionPing(url)
+  })
 
   const listeners = TRACKED_AD_EVENTS.map((eventType) => {
     const handler = (event: Event) => {
