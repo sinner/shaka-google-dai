@@ -1,6 +1,6 @@
-import { createEffect, createMemo, For, onCleanup, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js'
 import { Trash2 } from 'lucide-solid'
-import { Button, Title } from '@/components/ui'
+import { Button, Checkbox, Title } from '@/components/ui'
 import { cn } from '@/lib/cn'
 import { daiEventsStore } from '@/stores/daiEventsStore'
 import type { DashboardEvent, DashboardEventCategory } from '@/types/dai'
@@ -44,16 +44,28 @@ const categoryLabels: Record<DashboardEventCategory, string> = {
   network: 'Network',
 }
 
+function isInteractionPing(entry: DashboardEvent): boolean {
+  return entry.category === 'network' && entry.event === 'dai-interaction-ping'
+}
+
 export function AdEventsDashboard(props: { class?: string }) {
   let scrollContainerRef: HTMLDivElement | undefined
+  const [hideInteractionPings, setHideInteractionPings] = createSignal(false)
   const events = createMemo(() => daiEventsStore.events())
-  const eventCount = createMemo(() => events().length)
+  const visibleEvents = createMemo(() => {
+    if (!hideInteractionPings()) {
+      return events()
+    }
+
+    return events().filter((entry) => !isInteractionPing(entry))
+  })
+  const eventCount = createMemo(() => visibleEvents().length)
   const interactionCount = createMemo(
-    () => events().filter((entry) => entry.category === 'network').length,
+    () => events().filter((entry) => isInteractionPing(entry)).length,
   )
 
   createEffect(() => {
-    events()
+    visibleEvents()
     scrollContainerRef?.scrollTo({ top: 0, behavior: 'smooth' })
   })
 
@@ -68,7 +80,7 @@ export function AdEventsDashboard(props: { class?: string }) {
         props.class,
       )}
     >
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-1">
           <Title as="h3">Events Dashboard</Title>
           <p class="text-xs text-text-muted">
@@ -76,10 +88,19 @@ export function AdEventsDashboard(props: { class?: string }) {
             pings
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => daiEventsStore.clearEvents()}>
-          <Trash2 size={14} />
-          Clear events
-        </Button>
+        <div class="flex shrink-0 flex-col items-end gap-3 sm:flex-row sm:items-center">
+          <Checkbox
+            label="Hide Interaction Ping"
+            checked={hideInteractionPings()}
+            onChange={(event) =>
+              setHideInteractionPings(event.currentTarget.checked)
+            }
+          />
+          <Button variant="ghost" size="sm" onClick={() => daiEventsStore.clearEvents()}>
+            <Trash2 size={14} />
+            Clear events
+          </Button>
+        </div>
       </div>
 
       <div class="min-h-0 flex-1 overflow-hidden rounded-lg border border-border bg-black/20">
@@ -120,7 +141,7 @@ export function AdEventsDashboard(props: { class?: string }) {
                   </tr>
                 }
               >
-                <For each={events()}>
+                <For each={visibleEvents()}>
                   {(entry) => <EventRow entry={entry} />}
                 </For>
               </Show>
