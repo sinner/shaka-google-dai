@@ -6,6 +6,8 @@ export type LiveDaiSample = {
   assetKey: string
   streamFormat: StreamFormat
   requiresApiKey: boolean
+  drmLicenseUrl?: string
+  cookieResolverUrl?: string
 }
 
 export type LiveDaiSamplesFile = {
@@ -27,5 +29,6 @@ export type DashboardEvent = {
 export type StreamLoadConfig = {
   assetKey: string
   drmLicenseUrl?: string
+  cookieResolverUrl?: string
   imaApiKey?: string
 }

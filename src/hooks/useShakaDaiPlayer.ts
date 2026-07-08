@@ -7,7 +7,11 @@ import {
 } from '@/hooks/useAdEventHandlers'
 import { logger } from '@/lib/logger'
 import { createLiveStreamRequest, isImaDaiSdkAvailable } from '@/lib/video/daiStream'
-import { applyDrmConfig, initShakaPlayer } from '@/lib/video/shakaPlayer'
+import {
+  applyDrmConfig,
+  initShakaPlayer,
+  primeDrmCookies,
+} from '@/lib/video/shakaPlayer'
 import { daiEventsStore } from '@/stores/daiEventsStore'
 import type { StreamLoadConfig } from '@/types/dai'
 
@@ -232,6 +236,8 @@ export function useShakaDaiPlayer() {
       await player.unload()
       resetDaiStream(adManager, streamManager)
 
+      // Samsung/Hisense flow: VIDEOURL sets playback_token cookies that LICENSE needs.
+      await primeDrmCookies(config.cookieResolverUrl)
       applyDrmConfig(player, config.drmLicenseUrl)
       daiEventsStore.logAssetKeyChange(assetKey, label)
 

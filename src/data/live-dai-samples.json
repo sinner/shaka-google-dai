@@ -22,6 +22,22 @@
       "assetKey": "PSzZMzAkSXCmlJOWDmRj8Q",
       "streamFormat": "DASH",
       "requiresApiKey": false
+    },
+    {
+      "id": "ditu-live",
+      "label": "Ditu (Live)",
+      "assetKey": "bZlVfExESNqF3-MgWO0VsA",
+      "streamFormat": "DASH",
+      "requiresApiKey": false
+    },
+    {
+      "id": "tastemade-live",
+      "label": "Tastemade (Live, DRM)",
+      "assetKey": "0emvnNXVRTumFKacd9P2Xg",
+      "streamFormat": "DASH",
+      "requiresApiKey": false,
+      "drmLicenseUrl": "https://middleware.uat.ditu.caracoltv.com/AGL/1.6/R/ENG/SAMSUNGTV/ALL/CONTENT/LICENSE",
+      "cookieResolverUrl": "https://middleware.uat.ditu.caracoltv.com/AGL/1.6/R/ENG/SAMSUNGTV/ALL/CONTENT/VIDEOURL/LIVE/56/10"
     }
   ]
 }

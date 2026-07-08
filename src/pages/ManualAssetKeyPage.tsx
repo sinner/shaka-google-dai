@@ -14,6 +14,7 @@ export default function ManualAssetKeyPage() {
   const player = useShakaDaiPlayer()
   const [assetKey, setAssetKey] = createSignal('')
   const [drmLicenseUrl, setDrmLicenseUrl] = createSignal('')
+  const [cookieResolverUrl, setCookieResolverUrl] = createSignal('')
   const [imaApiKey, setImaApiKey] = createSignal(samplesData.defaultImaApiKey)
   const [requiresApiKey, setRequiresApiKey] = createSignal(false)
 
@@ -22,6 +23,7 @@ export default function ManualAssetKeyPage() {
       {
         assetKey: assetKey(),
         drmLicenseUrl: drmLicenseUrl(),
+        cookieResolverUrl: cookieResolverUrl(),
         imaApiKey: requiresApiKey() ? imaApiKey() : undefined,
       },
       'Manual load',
@@ -31,6 +33,8 @@ export default function ManualAssetKeyPage() {
   const handleSampleSelect = (sample: LiveDaiSample) => {
     setAssetKey(sample.assetKey)
     setRequiresApiKey(sample.requiresApiKey)
+    setDrmLicenseUrl(sample.drmLicenseUrl ?? '')
+    setCookieResolverUrl(sample.cookieResolverUrl ?? '')
 
     if (sample.requiresApiKey) {
       setImaApiKey(samplesData.defaultImaApiKey)
@@ -39,7 +43,8 @@ export default function ManualAssetKeyPage() {
     void player.loadStream(
       {
         assetKey: sample.assetKey,
-        drmLicenseUrl: drmLicenseUrl(),
+        drmLicenseUrl: sample.drmLicenseUrl,
+        cookieResolverUrl: sample.cookieResolverUrl,
         imaApiKey: sample.requiresApiKey
           ? samplesData.defaultImaApiKey
           : undefined,
@@ -51,6 +56,7 @@ export default function ManualAssetKeyPage() {
   const handleClear = () => {
     setAssetKey('')
     setDrmLicenseUrl('')
+    setCookieResolverUrl('')
     setImaApiKey(samplesData.defaultImaApiKey)
     setRequiresApiKey(false)
     void player.resetPlayer()
@@ -131,10 +137,18 @@ export default function ManualAssetKeyPage() {
 
             <Input
               label="DRM License URL (optional)"
-              placeholder="https://license.example.com/widevine"
-              hint="Leave empty for unencrypted DAI sample streams."
+              placeholder="https://middleware.../CONTENT/LICENSE"
+              hint="Widevine/PlayReady license proxy. Leave empty for clear streams."
               value={drmLicenseUrl()}
               onInput={(event) => setDrmLicenseUrl(event.currentTarget.value)}
+            />
+
+            <Input
+              label="DRM Cookie Resolver URL (optional)"
+              placeholder="https://middleware.../CONTENT/VIDEOURL/LIVE/{id}/{assetId}"
+              hint="Primes playback_token cookies before LICENSE (same as Samsung/Cast cookieResolverUrl)."
+              value={cookieResolverUrl()}
+              onInput={(event) => setCookieResolverUrl(event.currentTarget.value)}
             />
 
             <div class="flex flex-wrap gap-3">
