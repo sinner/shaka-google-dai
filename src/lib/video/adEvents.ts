@@ -7,8 +7,6 @@ export const TRACKED_AD_EVENTS = [
   shaka.ads.Utils.ALL_ADS_COMPLETED,
   shaka.ads.Utils.AD_ERROR,
   shaka.ads.Utils.AD_BREAK_READY,
-  shaka.ads.Utils.AD_BREAK_STARTED,
-  shaka.ads.Utils.AD_BREAK_ENDED,
   shaka.ads.Utils.AD_INTERACTION,
   shaka.ads.Utils.AD_STARTED,
   shaka.ads.Utils.AD_FIRST_QUARTILE,

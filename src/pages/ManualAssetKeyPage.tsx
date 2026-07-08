@@ -6,17 +6,50 @@ import { SampleStreamButtons } from '@/components/features/SampleStreamButtons'
 import { VideoPlayer } from '@/components/features/VideoPlayer'
 import { Button, Input, Title } from '@/components/ui'
 import { useShakaDaiPlayer } from '@/hooks/useShakaDaiPlayer'
-import type { LiveDaiSample, LiveDaiSamplesFile } from '@/types/dai'
+import type { LiveDaiSample, LiveDaiSamplesFile, StreamLoadConfig } from '@/types/dai'
 
 const samplesData = liveDaiSamples as LiveDaiSamplesFile
 
+function getDefaultSample(data: LiveDaiSamplesFile): LiveDaiSample {
+  const byId = data.defaultSampleId
+    ? data.samples.find((sample) => sample.id === data.defaultSampleId)
+    : undefined
+
+  return byId ?? data.samples[0]
+}
+
+const defaultSample = getDefaultSample(samplesData)
+
+function streamConfigFromSample(
+  sample: LiveDaiSample,
+  defaultImaApiKey: string,
+): StreamLoadConfig {
+  return {
+    assetKey: sample.assetKey,
+    drmLicenseUrl: sample.drmLicenseUrl,
+    cookieResolverUrl: sample.cookieResolverUrl,
+    imaApiKey: sample.requiresApiKey ? defaultImaApiKey : undefined,
+  }
+}
+
 export default function ManualAssetKeyPage() {
-  const player = useShakaDaiPlayer()
-  const [assetKey, setAssetKey] = createSignal('')
-  const [drmLicenseUrl, setDrmLicenseUrl] = createSignal('')
-  const [cookieResolverUrl, setCookieResolverUrl] = createSignal('')
+  const player = useShakaDaiPlayer({
+    defaultLoad: {
+      config: streamConfigFromSample(defaultSample, samplesData.defaultImaApiKey),
+      label: defaultSample.label,
+    },
+  })
+  const [assetKey, setAssetKey] = createSignal(defaultSample.assetKey)
+  const [drmLicenseUrl, setDrmLicenseUrl] = createSignal(
+    defaultSample.drmLicenseUrl ?? '',
+  )
+  const [cookieResolverUrl, setCookieResolverUrl] = createSignal(
+    defaultSample.cookieResolverUrl ?? '',
+  )
   const [imaApiKey, setImaApiKey] = createSignal(samplesData.defaultImaApiKey)
-  const [requiresApiKey, setRequiresApiKey] = createSignal(false)
+  const [requiresApiKey, setRequiresApiKey] = createSignal(
+    defaultSample.requiresApiKey,
+  )
 
   const handleLoadStream = () => {
     void player.loadStream(
@@ -41,14 +74,7 @@ export default function ManualAssetKeyPage() {
     }
 
     void player.loadStream(
-      {
-        assetKey: sample.assetKey,
-        drmLicenseUrl: sample.drmLicenseUrl,
-        cookieResolverUrl: sample.cookieResolverUrl,
-        imaApiKey: sample.requiresApiKey
-          ? samplesData.defaultImaApiKey
-          : undefined,
-      },
+      streamConfigFromSample(sample, samplesData.defaultImaApiKey),
       sample.label,
     )
   }

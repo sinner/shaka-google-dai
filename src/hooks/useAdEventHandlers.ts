@@ -5,7 +5,8 @@ import { TRACKED_AD_EVENTS } from '@/lib/video/adEvents'
 import { daiEventsStore } from '@/stores/daiEventsStore'
 
 type AdManager = shaka.extern.IAdManager
-type RegisterAdEventListenersOptions = {
+type WatchImaStreamManagerOptions = {
+  onManager: (manager: google.ima.dai.api.StreamManager) => void
   onAdBreakChange?: (active: boolean) => void
 }
 type ShakaAdEvent = Event & {
@@ -14,10 +15,7 @@ type ShakaAdEvent = Event & {
   imaStreamManager?: google.ima.dai.api.StreamManager
 }
 
-export function registerAdEventListeners(
-  adManager: AdManager,
-  options: RegisterAdEventListenersOptions = {},
-): () => void {
+export function registerAdEventListeners(adManager: AdManager): () => void {
   const stopInteractionObserver = observeDaiInteractionPings((url) => {
     daiEventsStore.logInteractionPing(url)
   })
@@ -33,19 +31,6 @@ export function registerAdEventListeners(
     return { eventType, handler }
   })
 
-  const onAdBreakStarted = () => {
-    logger.info('Ad break started')
-    options.onAdBreakChange?.(true)
-  }
-
-  const onAdBreakEnded = () => {
-    logger.info('Ad break ended')
-    options.onAdBreakChange?.(false)
-  }
-
-  adManager.addEventListener(shaka.ads.Utils.AD_BREAK_STARTED, onAdBreakStarted)
-  adManager.addEventListener(shaka.ads.Utils.AD_BREAK_ENDED, onAdBreakEnded)
-
   logger.info('Shaka ad event listeners registered', {
     count: listeners.length,
   })
@@ -55,8 +40,6 @@ export function registerAdEventListeners(
     for (const { eventType, handler } of listeners) {
       adManager.removeEventListener(eventType, handler)
     }
-    adManager.removeEventListener(shaka.ads.Utils.AD_BREAK_STARTED, onAdBreakStarted)
-    adManager.removeEventListener(shaka.ads.Utils.AD_BREAK_ENDED, onAdBreakEnded)
     logger.debug('Shaka ad event listeners removed')
   }
 }
@@ -98,24 +81,81 @@ function formatAdEventDetail(
   return parts.length ? parts.join(' · ') : undefined
 }
 
+function registerImaAdBreakListeners(
+  streamManager: google.ima.dai.api.StreamManager,
+  onAdBreakChange?: (active: boolean) => void,
+): () => void {
+  const { Type } = google.ima.dai.api.StreamEvent
+
+  const onStarted = (event: google.ima.dai.api.StreamEvent) => {
+    const detail = formatImaStreamEventDetail(event)
+    logger.event('IMA ad break started', { detail })
+    daiEventsStore.logAdEvent(shaka.ads.Utils.AD_BREAK_STARTED, detail)
+    onAdBreakChange?.(true)
+  }
+
+  const onEnded = (event: google.ima.dai.api.StreamEvent) => {
+    const detail = formatImaStreamEventDetail(event)
+    logger.event('IMA ad break ended', { detail })
+    daiEventsStore.logAdEvent(shaka.ads.Utils.AD_BREAK_ENDED, detail)
+    onAdBreakChange?.(false)
+  }
+
+  streamManager.addEventListener(Type.AD_BREAK_STARTED, onStarted)
+  streamManager.addEventListener(Type.AD_BREAK_ENDED, onEnded)
+
+  return () => {
+    streamManager.removeEventListener(Type.AD_BREAK_STARTED, onStarted)
+    streamManager.removeEventListener(Type.AD_BREAK_ENDED, onEnded)
+  }
+}
+
+function formatImaStreamEventDetail(
+  event: google.ima.dai.api.StreamEvent,
+): string | undefined {
+  const parts: string[] = []
+  const ad = event.getAd()
+
+  if (ad?.getAdId) {
+    parts.push(`adId=${ad.getAdId()}`)
+  }
+
+  if (typeof ad?.getDuration === 'function') {
+    parts.push(`duration=${ad.getDuration()}s`)
+  }
+
+  return parts.length ? parts.join(' · ') : undefined
+}
+
 export function watchImaStreamManager(
   adManager: AdManager,
-  onManager: (manager: google.ima.dai.api.StreamManager) => void,
+  options: WatchImaStreamManagerOptions,
 ): () => void {
+  let removeImaAdBreakListeners: (() => void) | null = null
+
   const handler = (event: Event) => {
     const streamManager =
       (event as ShakaAdEvent).imaStreamManager ??
       readEventField<google.ima.dai.api.StreamManager>(event, 'imaStreamManager')
 
-    if (streamManager) {
-      logger.debug('IMA stream manager loaded')
-      onManager(streamManager)
+    if (!streamManager) {
+      return
     }
+
+    logger.debug('IMA stream manager loaded')
+    removeImaAdBreakListeners?.()
+    removeImaAdBreakListeners = registerImaAdBreakListeners(
+      streamManager,
+      options.onAdBreakChange,
+    )
+    options.onManager(streamManager)
   }
 
   adManager.addEventListener(shaka.ads.Utils.IMA_STREAM_MANAGER_LOADED, handler)
 
   return () => {
+    removeImaAdBreakListeners?.()
+    removeImaAdBreakListeners = null
     adManager.removeEventListener(
       shaka.ads.Utils.IMA_STREAM_MANAGER_LOADED,
       handler,

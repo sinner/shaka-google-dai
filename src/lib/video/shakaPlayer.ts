@@ -102,9 +102,7 @@ export function applyDrmConfig(
         servers: {},
       },
       manifest: {
-        dash: {
-          ignoreDrmInfo: false,
-        },
+        ignoreDrmInfo: false,
       },
     })
     return
@@ -120,9 +118,7 @@ export function applyDrmConfig(
       },
     },
     manifest: {
-      dash: {
-        ignoreDrmInfo: true,
-      },
+      ignoreDrmInfo: true,
     },
   })
 
@@ -130,9 +126,12 @@ export function applyDrmConfig(
   logger.info('DRM license server configured', { licenseUrl })
 }
 
-export function initShakaPlayer(video: HTMLVideoElement): shaka.Player {
+export async function initShakaPlayer(
+  video: HTMLVideoElement,
+): Promise<shaka.Player> {
   shaka.polyfill.installAll()
-  const player = new shaka.Player(video)
+  const player = new shaka.Player()
+  await player.attach(video)
   registerLicenseRequestFilter(player)
   return player
 }

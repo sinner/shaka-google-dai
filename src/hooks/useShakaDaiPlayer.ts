@@ -21,7 +21,16 @@ type PlayerElements = {
   clientSideAdContainer: HTMLDivElement
 }
 
-export function useShakaDaiPlayer() {
+type DefaultStreamLoad = {
+  config: StreamLoadConfig
+  label?: string
+}
+
+type UseShakaDaiPlayerOptions = {
+  defaultLoad?: DefaultStreamLoad
+}
+
+export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
   const [loading, setLoading] = createSignal(false)
   const [error, setError] = createSignal<string | null>(null)
   const [activeAssetKey, setActiveAssetKey] = createSignal<string | null>(null)
@@ -38,17 +47,39 @@ export function useShakaDaiPlayer() {
   let allowPause = false
   let isVideoVisible = true
   let loadToken = 0
+  let hasAutoLoadedDefault = false
+  let boundVideo: HTMLVideoElement | null = null
+  let initPlayerPromise: Promise<void> | null = null
 
   const bindElements = (
     video: HTMLVideoElement,
     adContainer: HTMLDivElement,
     clientSideAdContainer: HTMLDivElement,
   ) => {
+    if (boundVideo === video && player) {
+      return
+    }
+
+    boundVideo = video
     elements = { video, adContainer, clientSideAdContainer }
     elements.video.muted = muted()
     attachPlaybackGuards(elements.video)
     logger.debug('Video elements bound')
-    initPlayer()
+    void ensurePlayerReady().then(() => loadDefaultStreamIfNeeded())
+  }
+
+  const ensurePlayerReady = async () => {
+    if (player) {
+      return
+    }
+
+    if (initPlayerPromise) {
+      await initPlayerPromise
+      return
+    }
+
+    initPlayerPromise = initPlayer()
+    await initPlayerPromise
   }
 
   const resumePlayback = (reason: string) => {
@@ -130,7 +161,7 @@ export function useShakaDaiPlayer() {
     logger.debug('Player mute toggled', { muted: nextMuted })
   }
 
-  const initPlayer = () => {
+  const initPlayer = async () => {
     if (!elements || player) {
       return
     }
@@ -142,7 +173,7 @@ export function useShakaDaiPlayer() {
       return
     }
 
-    player = initShakaPlayer(elements.video)
+    player = await initShakaPlayer(elements.video)
     adManager = player.getAdManager()
 
     if (!adManager) {
@@ -156,16 +187,17 @@ export function useShakaDaiPlayer() {
       elements.clientSideAdContainer,
       elements.adContainer,
     )
-    unregisterAdEvents = registerAdEventListeners(adManager, {
+    unregisterAdEvents = registerAdEventListeners(adManager)
+    unregisterStreamManagerWatch = watchImaStreamManager(adManager, {
+      onManager: (manager) => {
+        streamManager = manager
+      },
       onAdBreakChange: (active) => {
         setIsAdBreakActive(active)
         if (active && elements?.video.paused) {
           void elements.video.play().catch(() => {})
         }
       },
-    })
-    unregisterStreamManagerWatch = watchImaStreamManager(adManager, (manager) => {
-      streamManager = manager
     })
     logger.info('Shaka player initialized')
   }
@@ -217,7 +249,7 @@ export function useShakaDaiPlayer() {
       return
     }
 
-    initPlayer()
+    await ensurePlayerReady()
 
     if (!player || !adManager) {
       const message = 'Shaka player failed to initialize.'
@@ -233,8 +265,15 @@ export function useShakaDaiPlayer() {
     logger.info('Loading DAI stream', { assetKey, label })
 
     try {
-      await player.unload()
-      resetDaiStream(adManager, streamManager)
+      if (activeAssetKey()) {
+        await player.unload()
+        resetDaiStream(adManager, streamManager)
+      }
+
+      adManager.setContainers(
+        elements.clientSideAdContainer,
+        elements.adContainer,
+      )
 
       // Samsung/Hisense flow: VIDEOURL sets playback_token cookies that LICENSE needs.
       await primeDrmCookies(config.cookieResolverUrl)
@@ -272,6 +311,17 @@ export function useShakaDaiPlayer() {
     }
   }
 
+  const loadDefaultStreamIfNeeded = () => {
+    const defaultLoad = options.defaultLoad
+    if (!defaultLoad || hasAutoLoadedDefault || !player || !adManager) {
+      return
+    }
+
+    hasAutoLoadedDefault = true
+    logger.info('Auto-loading default stream', { label: defaultLoad.label })
+    void loadStream(defaultLoad.config, defaultLoad.label)
+  }
+
   onCleanup(() => {
     loadToken += 1
     allowPause = true
@@ -291,6 +341,8 @@ export function useShakaDaiPlayer() {
     }
 
     elements = null
+    initPlayerPromise = null
+    boundVideo = null
     logger.debug('Shaka player hook cleaned up')
   })
 

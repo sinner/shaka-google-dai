@@ -48,6 +48,11 @@ function isInteractionPing(entry: DashboardEvent): boolean {
   return entry.category === 'network' && entry.event === 'dai-interaction-ping'
 }
 
+const eventNameStyles: Record<string, string> = {
+  'ad-break-started': 'text-amber-300',
+  'ad-break-ended': 'text-cyan-300',
+}
+
 export function AdEventsDashboard(props: { class?: string }) {
   let scrollContainerRef: HTMLDivElement | undefined
   const [hideInteractionPings, setHideInteractionPings] = createSignal(false)
@@ -179,7 +184,12 @@ function EventRow(props: { entry: DashboardEvent }) {
           {categoryLabels[props.entry.category]}
         </span>
       </td>
-      <td class="whitespace-nowrap px-3 py-2 font-medium text-white">
+      <td
+        class={cn(
+          'whitespace-nowrap px-3 py-2 font-medium',
+          eventNameStyles[props.entry.event] ?? 'text-white',
+        )}
+      >
         {formatEventName(props.entry.event)}
       </td>
       <td

@@ -1,6 +1,7 @@
 {
   "networkCode": "21775744923",
   "defaultImaApiKey": "8B1DA006064BD04C5CD474456AB8C9BDA790628E3184E95074EC65E308331EBC",
+  "defaultSampleId": "tos-live",
   "samples": [
     {
       "id": "bbb-live",

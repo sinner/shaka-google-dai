@@ -13,6 +13,7 @@ export type LiveDaiSample = {
 export type LiveDaiSamplesFile = {
   networkCode: string
   defaultImaApiKey: string
+  defaultSampleId?: string
   samples: LiveDaiSample[]
 }
 

@@ -33,20 +33,25 @@ export function VideoPlayer(rawProps: VideoPlayerProps) {
   let videoElement: HTMLVideoElement | undefined
   let adContainerElement: HTMLDivElement | undefined
   let clientSideAdContainerElement: HTMLDivElement | undefined
+  let hasNotifiedReady = false
 
   const notifyReady = () => {
     if (
-      videoElement &&
-      adContainerElement &&
-      clientSideAdContainerElement &&
-      local.onReady
+      hasNotifiedReady ||
+      !videoElement ||
+      !adContainerElement ||
+      !clientSideAdContainerElement ||
+      !local.onReady
     ) {
-      local.onReady({
-        video: videoElement,
-        adContainer: adContainerElement,
-        clientSideAdContainer: clientSideAdContainerElement,
-      })
+      return
     }
+
+    hasNotifiedReady = true
+    local.onReady({
+      video: videoElement,
+      adContainer: adContainerElement,
+      clientSideAdContainer: clientSideAdContainerElement,
+    })
   }
 
   const setVideoRef = (element: HTMLVideoElement | undefined) => {
@@ -84,10 +89,6 @@ export function VideoPlayer(rawProps: VideoPlayerProps) {
     }
 
     videoElement.style.pointerEvents = 'auto'
-  })
-
-  createEffect(() => {
-    notifyReady()
   })
 
   const handleToggleMute = (event: MouseEvent) => {
