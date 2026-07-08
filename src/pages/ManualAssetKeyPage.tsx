@@ -221,7 +221,10 @@ export default function ManualAssetKeyPage() {
         </div>
 
         <aside class="xl:sticky xl:top-6 xl:self-start">
-          <AdEventsDashboard class="xl:h-[calc(100dvh-5.5rem)]" />
+          <AdEventsDashboard
+            class="xl:h-[calc(100dvh-5.5rem)]"
+            liveStreamName={player.activeStreamLabel}
+          />
         </aside>
       </div>
     </section>

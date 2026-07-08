@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, onCleanup, Show, type Accessor } from 'solid-js'
 import { Trash2 } from 'lucide-solid'
 import { Button, Checkbox, Title } from '@/components/ui'
 import { cn } from '@/lib/cn'
@@ -53,7 +53,10 @@ const eventNameStyles: Record<string, string> = {
   'ad-break-ended': 'text-cyan-300',
 }
 
-export function AdEventsDashboard(props: { class?: string }) {
+export function AdEventsDashboard(props: {
+  class?: string
+  liveStreamName?: Accessor<string | null | undefined>
+}) {
   let scrollContainerRef: HTMLDivElement | undefined
   const [hideInteractionPings, setHideInteractionPings] = createSignal(false)
   const events = createMemo(() => daiEventsStore.events())
@@ -88,6 +91,7 @@ export function AdEventsDashboard(props: { class?: string }) {
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-1">
           <Title as="h3">Events Dashboard</Title>
+          <p class="text-sm text-text-muted">{props.liveStreamName?.()?.trim?.() || 'No stream loaded'}</p>
           <p class="text-xs text-text-muted">
             Live feed · {eventCount()} events · {interactionCount()} interaction
             pings

@@ -35,6 +35,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
   const [loading, setLoading] = createSignal(false)
   const [error, setError] = createSignal<string | null>(null)
   const [activeAssetKey, setActiveAssetKey] = createSignal<string | null>(null)
+  const [activeStreamLabel, setActiveStreamLabel] = createSignal<string | null>(null)
   const [muted, setMuted] = createSignal(true)
   const [isAdBreakActive, setIsAdBreakActive] = createSignal(false)
 
@@ -206,6 +207,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
     setLoading(false)
     setError(null)
     setActiveAssetKey(null)
+    setActiveStreamLabel(null)
     setIsAdBreakActive(false)
     logger.info('Player reset requested')
 
@@ -289,6 +291,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
 
       await player.load(uri)
       setActiveAssetKey(assetKey)
+      setActiveStreamLabel(label?.trim() || null)
       logger.info('DAI stream loaded', { assetKey, uri })
     } catch (loadError) {
       if (token !== loadToken) {
@@ -350,6 +353,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
     loading,
     error,
     activeAssetKey,
+    activeStreamLabel,
     muted,
     isAdBreakActive,
   }
