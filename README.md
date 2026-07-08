@@ -25,6 +25,7 @@ Open [http://localhost:5173](http://localhost:5173). The app redirects `/` to `/
 ## Documentation
 
 - [DAI + Shaka integration reference](docs/DAI-SHAKA-INTEGRATION.md) — versions, flow, code map, Samsung app review checklist
+- [Ad break countdown](docs/AD-BREAK-COUNTDOWN.md) — feature plan and initial implementation (feature branch)
 
 ## Routes
 
