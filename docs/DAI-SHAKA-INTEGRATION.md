@@ -93,10 +93,10 @@ flowchart TD
   I --> J[Shaka DASH parser: urn:google:dai:2018 EventStreams]
   J --> K[adManager.onDashTimedMetadata]
   K --> L[StreamManager.processMetadata]
-  L --> M[/interaction + impression beacons]
+  L --> M["/interaction + impression beacons"]
   M --> N[PerformanceObserver logs pings in dashboard]
-
-  H --> O{Channel change?}
+  N --> O{Channel change?}
+  O -->|no| N
   O -->|yes| P[player.unload]
   P --> Q[streamManager.reset + adManager.onAssetUnload]
   Q --> G
