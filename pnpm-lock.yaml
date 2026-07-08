@@ -11,9 +11,6 @@ importers:
       '@solidjs/router':
         specifier: ^0.16.1
         version: 0.16.1(solid-js@1.9.14)
-      gh-pages:
-        specifier: ^6.3.0
-        version: 6.3.0
       lucide-solid:
         specifier: ^1.23.0
         version: 1.23.0(solid-js@1.9.14)
@@ -30,6 +27,9 @@ importers:
       '@types/node':
         specifier: ^24.13.2
         version: 24.13.2
+      gh-pages:
+        specifier: ^6.3.0
+        version: 6.3.0
       tailwindcss:
         specifier: ^4.3.2
         version: 4.3.2
