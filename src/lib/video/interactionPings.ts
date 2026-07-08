@@ -1,8 +1,9 @@
 import { logger } from '@/lib/logger'
 
 function isDaiInteractionUrl(url: string): boolean {
+  // Real FAST channels use /pagead/interaction/; Google samples use /pagead/live/interaction/.
   return (
-    url.includes('pagead/live/interaction') ||
+    url.includes('pagead/interaction') ||
     (url.includes('dai.google.com') && url.includes('/interaction'))
   )
 }

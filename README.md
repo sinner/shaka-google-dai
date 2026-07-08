@@ -22,6 +22,10 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173). The app redirects `/` to `/manual-asset-key`.
 
+## Documentation
+
+- [DAI + Shaka integration reference](docs/DAI-SHAKA-INTEGRATION.md) — versions, flow, code map, Samsung app review checklist
+
 ## Routes
 
 | Path | Page |
