@@ -38,6 +38,9 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
   const [activeStreamLabel, setActiveStreamLabel] = createSignal<string | null>(null)
   const [muted, setMuted] = createSignal(true)
   const [isAdBreakActive, setIsAdBreakActive] = createSignal(false)
+  const [adBreakRemainingSeconds, setAdBreakRemainingSeconds] = createSignal<
+    number | null
+  >(null)
 
   let elements: PlayerElements | null = null
   let player: shaka.Player | null = null
@@ -193,9 +196,15 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
       },
       onAdBreakChange: (active) => {
         setIsAdBreakActive(active)
+        if (!active) {
+          setAdBreakRemainingSeconds(null)
+        }
         if (active && elements?.video.paused) {
           void elements.video.play().catch(() => {})
         }
+      },
+      onAdBreakRemaining: (seconds) => {
+        setAdBreakRemainingSeconds(seconds)
       },
     })
     logger.info('Shaka player initialized')
@@ -209,6 +218,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
     setActiveAssetKey(null)
     setActiveStreamLabel(null)
     setIsAdBreakActive(false)
+    setAdBreakRemainingSeconds(null)
     logger.info('Player reset requested')
 
     if (!player || !adManager) {
@@ -356,6 +366,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
     activeStreamLabel,
     muted,
     isAdBreakActive,
+    adBreakRemainingSeconds,
   }
 }
 

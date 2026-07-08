@@ -127,6 +127,7 @@ export default function ManualAssetKeyPage() {
             loading={player.loading()}
             muted={player.muted()}
             isAdBreakActive={player.isAdBreakActive}
+            adBreakRemainingSeconds={player.adBreakRemainingSeconds}
             onToggleMute={player.toggleMute}
             onReady={(elements) =>
               player.bindElements(

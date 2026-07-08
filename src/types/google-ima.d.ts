@@ -10,13 +10,28 @@ declare namespace google.ima.dai.api {
     getDuration?: () => number
   }
 
+  interface AdProgressData {
+    adBreakDuration: number
+    adPeriodDuration: number
+    adPosition: number
+    currentTime: number
+    duration: number
+    totalAds: number
+  }
+
+  interface StreamData {
+    adProgressData?: AdProgressData | null
+  }
+
   class StreamEvent {
     static Type: {
       AD_BREAK_STARTED: string
       AD_BREAK_ENDED: string
+      AD_PROGRESS: string
     }
 
     getAd(): StreamAd | null
+    getStreamData(): StreamData
   }
 
   class StreamManager {

@@ -2,12 +2,14 @@ import { createEffect, mergeProps, Show, splitProps, type Accessor } from 'solid
 import { Volume2, VolumeX } from 'lucide-solid'
 import { Button } from '@/components/ui'
 import { cn } from '@/lib/cn'
+import { formatAdBreakCountdown } from '@/lib/video/adBreakCountdown'
 
 export type VideoPlayerProps = {
   class?: string
   loading?: boolean
   muted?: boolean
   isAdBreakActive?: Accessor<boolean>
+  adBreakRemainingSeconds?: Accessor<number | null>
   onToggleMute?: () => void
   onReady?: (elements: {
     video: HTMLVideoElement
@@ -18,7 +20,7 @@ export type VideoPlayerProps = {
 
 export function VideoPlayer(rawProps: VideoPlayerProps) {
   const props = mergeProps(
-    { loading: false, muted: true, isAdBreakActive: () => false },
+    { loading: false, muted: true, isAdBreakActive: () => false, adBreakRemainingSeconds: () => null },
     rawProps,
   )
   const [local] = splitProps(props, [
@@ -26,6 +28,7 @@ export function VideoPlayer(rawProps: VideoPlayerProps) {
     'loading',
     'muted',
     'isAdBreakActive',
+    'adBreakRemainingSeconds',
     'onToggleMute',
     'onReady',
   ])
@@ -139,8 +142,20 @@ export function VideoPlayer(rawProps: VideoPlayerProps) {
           </div>
 
           <Show when={local.isAdBreakActive()}>
-            <div class="absolute top-3 left-3 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-white ring-1 ring-amber-400/40">
-              Ad break — playback cannot be paused
+            <div class="absolute top-3 left-3 space-y-1">
+              <div class="rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-100 ring-1 ring-amber-400/40">
+                Ad break — playback cannot be paused
+              </div>
+              <Show
+                when={local.adBreakRemainingSeconds?.()}
+                keyed
+              >
+                {(remaining) => (
+                  <div class="rounded-lg bg-black/70 px-3 py-1.5 font-mono text-sm font-semibold text-white ring-1 ring-white/20">
+                    Break ends in {formatAdBreakCountdown(remaining)}
+                  </div>
+                )}
+              </Show>
             </div>
           </Show>
         </div>
