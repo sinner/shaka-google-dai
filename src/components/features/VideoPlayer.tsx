@@ -98,7 +98,7 @@ export function VideoPlayer(rawProps: VideoPlayerProps) {
   return (
     <div
       class={cn(
-        'mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-border',
+        'w-full overflow-hidden rounded-2xl border border-border',
         'bg-black shadow-2xl shadow-primary-400/10',
         local.class,
       )}

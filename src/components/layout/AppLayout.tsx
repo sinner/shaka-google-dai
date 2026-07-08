@@ -9,7 +9,7 @@ export function AppLayout(props: AppLayoutProps) {
   return (
     <div class="flex min-h-dvh flex-col">
       <Nav />
-      <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main class="mx-auto w-full max-w-[96rem] flex-1 px-4 py-6 sm:px-6 lg:px-8">
         {props.children}
       </main>
     </div>

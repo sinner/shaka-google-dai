@@ -75,92 +75,101 @@ export default function ManualAssetKeyPage() {
         </p>
       </header>
 
-      <VideoPlayer
-        loading={player.loading()}
-        muted={player.muted()}
-        isAdBreakActive={player.isAdBreakActive}
-        onToggleMute={player.toggleMute}
-        onReady={(elements) =>
-          player.bindElements(
-            elements.video,
-            elements.adContainer,
-            elements.clientSideAdContainer,
-          )
-        }
-      />
-
-      <Show when={player.error()}>
-        {(message) => (
-          <p class="rounded-lg border border-red-400/40 bg-red-950/40 px-4 py-3 text-sm text-red-200">
-            {message()}
-          </p>
-        )}
-      </Show>
-
-      <div class="grid gap-6">
-        <div class="space-y-4 rounded-xl border border-border bg-surface p-6">
-          <Title as="h3">Stream Configuration</Title>
-
-          <div class="space-y-2">
-            <p class="text-sm font-medium text-white">Sample live streams</p>
-            <SampleStreamButtons
-              samples={samplesData.samples}
-              onSelect={handleSampleSelect}
-            />
-          </div>
-
-          <Input
-            label="Asset Key"
-            placeholder="Enter your live asset key"
-            hint="Network code for samples: 21775744923"
-            value={assetKey()}
-            onInput={(event) => setAssetKey(event.currentTarget.value)}
+      <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)]">
+        <div class="space-y-6">
+          <VideoPlayer
+            class="max-w-none"
+            loading={player.loading()}
+            muted={player.muted()}
+            isAdBreakActive={player.isAdBreakActive}
+            onToggleMute={player.toggleMute}
+            onReady={(elements) =>
+              player.bindElements(
+                elements.video,
+                elements.adContainer,
+                elements.clientSideAdContainer,
+              )
+            }
           />
 
-          <Show when={requiresApiKey()}>
-            <Input
-              label="IMA API Key"
-              placeholder="Required for authenticated sample streams"
-              hint="Use the active IMA test API key from Google DAI docs when required."
-              value={imaApiKey()}
-              onInput={(event) => setImaApiKey(event.currentTarget.value)}
-            />
+          <Show when={player.error()}>
+            {(message) => (
+              <p class="rounded-lg border border-red-400/40 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+                {message()}
+              </p>
+            )}
           </Show>
 
-          <Input
-            label="DRM License URL (optional)"
-            placeholder="https://license.example.com/widevine"
-            hint="Leave empty for unencrypted DAI sample streams."
-            value={drmLicenseUrl()}
-            onInput={(event) => setDrmLicenseUrl(event.currentTarget.value)}
-          />
+          <div class="space-y-4 rounded-xl border border-border bg-surface p-6">
+            <Title as="h3">Stream Configuration</Title>
 
-          <div class="flex flex-wrap gap-3">
-            <Button type="button" onClick={handleLoadStream} disabled={player.loading()}>
-              <Play size={16} />
-              Load Stream
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setRequiresApiKey((current) => !current)}
-            >
-              <Radio size={16} />
-              {requiresApiKey() ? 'API key required' : 'API key optional'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleClear}
-              disabled={player.loading()}
-            >
-              <RotateCcw size={16} />
-              Clear
-            </Button>
+            <div class="space-y-2">
+              <p class="text-sm font-medium text-white">Sample live streams</p>
+              <SampleStreamButtons
+                samples={samplesData.samples}
+                onSelect={handleSampleSelect}
+              />
+            </div>
+
+            <Input
+              label="Asset Key"
+              placeholder="Enter your live asset key"
+              hint="Network code for samples: 21775744923"
+              value={assetKey()}
+              onInput={(event) => setAssetKey(event.currentTarget.value)}
+            />
+
+            <Show when={requiresApiKey()}>
+              <Input
+                label="IMA API Key"
+                placeholder="Required for authenticated sample streams"
+                hint="Use the active IMA test API key from Google DAI docs when required."
+                value={imaApiKey()}
+                onInput={(event) => setImaApiKey(event.currentTarget.value)}
+              />
+            </Show>
+
+            <Input
+              label="DRM License URL (optional)"
+              placeholder="https://license.example.com/widevine"
+              hint="Leave empty for unencrypted DAI sample streams."
+              value={drmLicenseUrl()}
+              onInput={(event) => setDrmLicenseUrl(event.currentTarget.value)}
+            />
+
+            <div class="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                onClick={handleLoadStream}
+                disabled={player.loading()}
+              >
+                <Play size={16} />
+                Load Stream
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setRequiresApiKey((current) => !current)}
+              >
+                <Radio size={16} />
+                {requiresApiKey() ? 'API key required' : 'API key optional'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleClear}
+                disabled={player.loading()}
+              >
+                <RotateCcw size={16} />
+                Clear
+              </Button>
+            </div>
           </div>
         </div>
 
-        <AdEventsDashboard />
+        <aside class="xl:sticky xl:top-6 xl:self-start">
+          <AdEventsDashboard class="xl:h-[calc(100dvh-5.5rem)]" />
+        </aside>
       </div>
     </section>
   )

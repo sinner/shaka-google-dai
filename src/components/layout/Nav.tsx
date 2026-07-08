@@ -13,7 +13,7 @@ export function Nav() {
 
   return (
     <nav class="border-b border-border bg-black/20 backdrop-blur-sm">
-      <div class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-4 sm:px-6">
+      <div class="mx-auto flex w-full max-w-[96rem] items-center gap-6 px-4 py-4 sm:px-6 lg:px-8">
         <span class="text-sm font-semibold tracking-wide text-white">
           Google DAI
         </span>

@@ -30,7 +30,9 @@ export function useShakaDaiPlayer() {
   let streamManager: google.ima.dai.api.StreamManager | null = null
   let unregisterAdEvents: (() => void) | null = null
   let unregisterStreamManagerWatch: (() => void) | null = null
-  let onVideoPause: (() => void) | null = null
+  let detachPlaybackGuards: (() => void) | null = null
+  let allowPause = false
+  let isVideoVisible = true
   let loadToken = 0
 
   const bindElements = (
@@ -40,26 +42,77 @@ export function useShakaDaiPlayer() {
   ) => {
     elements = { video, adContainer, clientSideAdContainer }
     elements.video.muted = muted()
-    attachAdBreakPauseGuard(elements.video)
+    attachPlaybackGuards(elements.video)
     logger.debug('Video elements bound')
     initPlayer()
   }
 
-  const attachAdBreakPauseGuard = (video: HTMLVideoElement) => {
-    onVideoPause?.()
-    onVideoPause = () => video.removeEventListener('pause', handleVideoPause)
-    video.addEventListener('pause', handleVideoPause)
-  }
-
-  const handleVideoPause = () => {
-    if (!isAdBreakActive() || !elements?.video) {
+  const resumePlayback = (reason: string) => {
+    if (!elements?.video || allowPause) {
       return
     }
 
-    logger.debug('Resume playback during ad break after accidental pause')
+    logger.debug('Resume playback', { reason })
     void elements.video.play().catch((playError) => {
-      logger.warn('Failed to resume ad playback', { playError })
+      logger.warn('Failed to resume playback', { reason, playError })
     })
+  }
+
+  const shouldForcePlayback = () =>
+    Boolean(activeAssetKey()) && (isAdBreakActive() || !isVideoVisible)
+
+  const attachPlaybackGuards = (video: HTMLVideoElement) => {
+    detachPlaybackGuards?.()
+
+    const handleVideoPause = () => {
+      if (!shouldForcePlayback()) {
+        return
+      }
+
+      resumePlayback(
+        isAdBreakActive()
+          ? 'ad-break-pause'
+          : 'offscreen-pause',
+      )
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && shouldForcePlayback()) {
+        if (elements?.video.paused) {
+          resumePlayback('document-visible')
+        }
+      }
+    }
+
+    video.addEventListener('pause', handleVideoPause)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    let intersectionObserver: IntersectionObserver | null = null
+    if (typeof IntersectionObserver !== 'undefined') {
+      intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0]
+          if (!entry) {
+            return
+          }
+
+          isVideoVisible = entry.isIntersecting && entry.intersectionRatio > 0
+
+          if (!isVideoVisible && shouldForcePlayback() && video.paused) {
+            resumePlayback('scrolled-out-of-view')
+          }
+        },
+        { threshold: [0, 0.01] },
+      )
+      intersectionObserver.observe(video)
+    }
+
+    detachPlaybackGuards = () => {
+      video.removeEventListener('pause', handleVideoPause)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      intersectionObserver?.disconnect()
+      intersectionObserver = null
+    }
   }
 
   const toggleMute = () => {
@@ -115,6 +168,7 @@ export function useShakaDaiPlayer() {
 
   const resetPlayer = async () => {
     loadToken += 1
+    allowPause = true
     setLoading(false)
     setError(null)
     setActiveAssetKey(null)
@@ -125,6 +179,7 @@ export function useShakaDaiPlayer() {
       elements?.video.pause()
       elements?.video.removeAttribute('src')
       elements?.video.load()
+      allowPause = false
       return
     }
 
@@ -137,6 +192,7 @@ export function useShakaDaiPlayer() {
     }
 
     elements?.video.pause()
+    allowPause = false
     logger.info('Player reset complete')
   }
 
@@ -167,6 +223,7 @@ export function useShakaDaiPlayer() {
     }
 
     const token = ++loadToken
+    allowPause = true
     setLoading(true)
     setError(null)
     logger.info('Loading DAI stream', { assetKey, label })
@@ -203,6 +260,7 @@ export function useShakaDaiPlayer() {
       daiEventsStore.logAdEvent(shaka.ads.Utils.AD_ERROR, message)
     } finally {
       if (token === loadToken) {
+        allowPause = false
         setLoading(false)
       }
     }
@@ -210,12 +268,13 @@ export function useShakaDaiPlayer() {
 
   onCleanup(() => {
     loadToken += 1
+    allowPause = true
     unregisterAdEvents?.()
     unregisterAdEvents = null
     unregisterStreamManagerWatch?.()
     unregisterStreamManagerWatch = null
-    onVideoPause?.()
-    onVideoPause = null
+    detachPlaybackGuards?.()
+    detachPlaybackGuards = null
     resetDaiStream(adManager, streamManager)
     streamManager = null
     adManager = null
