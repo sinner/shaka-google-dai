@@ -8,12 +8,15 @@ export type LiveDaiSample = {
   requiresApiKey: boolean
   drmLicenseUrl?: string
   cookieResolverUrl?: string
+  useSamsungTvAdTagParameters?: boolean
+  adTagParameters?: Record<string, string>
 }
 
 export type LiveDaiSamplesFile = {
   networkCode: string
   defaultImaApiKey: string
   defaultSampleId?: string
+  samsungTvAdTagParameters?: Record<string, string>
   samples: LiveDaiSample[]
 }
 
@@ -32,4 +35,5 @@ export type StreamLoadConfig = {
   drmLicenseUrl?: string
   cookieResolverUrl?: string
   imaApiKey?: string
+  adTagParameters?: Record<string, string>
 }

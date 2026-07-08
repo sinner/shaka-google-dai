@@ -278,6 +278,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
       const streamRequest = createLiveStreamRequest({
         assetKey,
         imaApiKey: config.imaApiKey?.trim() || undefined,
+        adTagParameters: config.adTagParameters,
       })
 
       const uri = await adManager.requestServerSideStream(streamRequest)

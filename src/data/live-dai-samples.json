@@ -2,6 +2,20 @@
   "networkCode": "21775744923",
   "defaultImaApiKey": "8B1DA006064BD04C5CD474456AB8C9BDA790628E3184E95074EC65E308331EBC",
   "defaultSampleId": "tos-live",
+  "samsungTvAdTagParameters": {
+    "an": "ditu",
+    "cust_params": "platform=samsung_tv&deviceType=TV&appVersion=2.6.0",
+    "description_url": "https://ditu.caracoltv.com/epg",
+    "deviceType": "TV",
+    "dth": "5",
+    "idtype": "tifa",
+    "is_lat": "1",
+    "mpt": "shaka-player",
+    "mpv": "v4.12.2",
+    "ppid": "SVszj3FwF%2BFaWB-ZZz%7DHiyR3mgIfQu",
+    "rdid": "6564f3b3-6a3e-4b1a-a0da-f8494ceb3b3d",
+    "vpa": "auto"
+  },
   "samples": [
     {
       "id": "bbb-live",
@@ -29,7 +43,8 @@
       "label": "Ditu (Live)",
       "assetKey": "bZlVfExESNqF3-MgWO0VsA",
       "streamFormat": "DASH",
-      "requiresApiKey": false
+      "requiresApiKey": false,
+      "useSamsungTvAdTagParameters": true
     },
     {
       "id": "tastemade-live",
@@ -37,6 +52,10 @@
       "assetKey": "0emvnNXVRTumFKacd9P2Xg",
       "streamFormat": "DASH",
       "requiresApiKey": false,
+      "useSamsungTvAdTagParameters": true,
+      "adTagParameters": {
+        "an": "tastemade"
+      },
       "drmLicenseUrl": "https://middleware.uat.ditu.caracoltv.com/AGL/1.6/R/ENG/SAMSUNGTV/ALL/CONTENT/LICENSE",
       "cookieResolverUrl": "https://middleware.uat.ditu.caracoltv.com/AGL/1.6/R/ENG/SAMSUNGTV/ALL/CONTENT/VIDEOURL/LIVE/56/10"
     }

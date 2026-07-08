@@ -6,6 +6,7 @@ import { SampleStreamButtons } from '@/components/features/SampleStreamButtons'
 import { VideoPlayer } from '@/components/features/VideoPlayer'
 import { Button, Input, Title } from '@/components/ui'
 import { useShakaDaiPlayer } from '@/hooks/useShakaDaiPlayer'
+import { resolveAdTagParameters } from '@/lib/video/daiStream'
 import type { LiveDaiSample, LiveDaiSamplesFile, StreamLoadConfig } from '@/types/dai'
 
 const samplesData = liveDaiSamples as LiveDaiSamplesFile
@@ -22,20 +23,24 @@ const defaultSample = getDefaultSample(samplesData)
 
 function streamConfigFromSample(
   sample: LiveDaiSample,
-  defaultImaApiKey: string,
+  data: LiveDaiSamplesFile,
 ): StreamLoadConfig {
   return {
     assetKey: sample.assetKey,
     drmLicenseUrl: sample.drmLicenseUrl,
     cookieResolverUrl: sample.cookieResolverUrl,
-    imaApiKey: sample.requiresApiKey ? defaultImaApiKey : undefined,
+    imaApiKey: sample.requiresApiKey ? data.defaultImaApiKey : undefined,
+    adTagParameters: resolveAdTagParameters(
+      sample,
+      data.samsungTvAdTagParameters,
+    ),
   }
 }
 
 export default function ManualAssetKeyPage() {
   const player = useShakaDaiPlayer({
     defaultLoad: {
-      config: streamConfigFromSample(defaultSample, samplesData.defaultImaApiKey),
+      config: streamConfigFromSample(defaultSample, samplesData),
       label: defaultSample.label,
     },
   })
@@ -50,6 +55,9 @@ export default function ManualAssetKeyPage() {
   const [requiresApiKey, setRequiresApiKey] = createSignal(
     defaultSample.requiresApiKey,
   )
+  const [adTagParameters, setAdTagParameters] = createSignal(
+    resolveAdTagParameters(defaultSample, samplesData.samsungTvAdTagParameters),
+  )
 
   const handleLoadStream = () => {
     void player.loadStream(
@@ -58,6 +66,7 @@ export default function ManualAssetKeyPage() {
         drmLicenseUrl: drmLicenseUrl(),
         cookieResolverUrl: cookieResolverUrl(),
         imaApiKey: requiresApiKey() ? imaApiKey() : undefined,
+        adTagParameters: adTagParameters(),
       },
       'Manual load',
     )
@@ -68,13 +77,16 @@ export default function ManualAssetKeyPage() {
     setRequiresApiKey(sample.requiresApiKey)
     setDrmLicenseUrl(sample.drmLicenseUrl ?? '')
     setCookieResolverUrl(sample.cookieResolverUrl ?? '')
+    setAdTagParameters(
+      resolveAdTagParameters(sample, samplesData.samsungTvAdTagParameters),
+    )
 
     if (sample.requiresApiKey) {
       setImaApiKey(samplesData.defaultImaApiKey)
     }
 
     void player.loadStream(
-      streamConfigFromSample(sample, samplesData.defaultImaApiKey),
+      streamConfigFromSample(sample, samplesData),
       sample.label,
     )
   }
@@ -85,6 +97,7 @@ export default function ManualAssetKeyPage() {
     setCookieResolverUrl('')
     setImaApiKey(samplesData.defaultImaApiKey)
     setRequiresApiKey(false)
+    setAdTagParameters(undefined)
     void player.resetPlayer()
   }
 
