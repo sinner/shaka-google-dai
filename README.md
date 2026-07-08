@@ -61,7 +61,7 @@ Available from `@/components/ui`:
 | `pnpm dev` | Start dev server |
 | `pnpm build` | Type-check and production build |
 | `pnpm preview` | Preview production build |
-| `pnpm deploy` | Build and publish to GitHub Pages |
+| `pnpm pages:deploy` | Build and publish to GitHub Pages |
 
 ## Publish to GitHub Pages
 
@@ -83,10 +83,10 @@ If either is missing, navigation can jump to the wrong URL (e.g. `https://sinner
 
 ```bash
 pnpm install
-pnpm deploy
+pnpm pages:deploy
 ```
 
-`pnpm deploy` runs:
+`pnpm pages:deploy` runs:
 
 1. `pnpm build` — production build with `base: /shaka-google-dai/`
 2. `cp dist/index.html dist/404.html` — GitHub Pages SPA fallback for direct URLs / refresh
@@ -111,7 +111,7 @@ If you fork or rename the repo, update **both**:
 - `base` in `vite.config.ts` → `/{new-repo-name}/`
 - `homepage` in `package.json` → `https://{user}.github.io/{new-repo-name}/`
 
-Then run `pnpm deploy` again.
+Then run `pnpm pages:deploy` again.
 
 ### Local preview of the Pages build
 

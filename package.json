@@ -8,8 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "predeploy": "pnpm run build && cp dist/index.html dist/404.html",
-    "deploy": "gh-pages -d dist"
+    "pages:deploy": "pnpm run build && cp dist/index.html dist/404.html && gh-pages -d dist"
   },
   "dependencies": {
     "@solidjs/router": "^0.16.1",
