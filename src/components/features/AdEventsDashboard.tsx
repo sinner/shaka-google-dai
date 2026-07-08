@@ -90,8 +90,8 @@ export function AdEventsDashboard(props: {
     >
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="space-y-1">
-          <Title as="h3">Events Dashboard</Title>
-          <p class="text-sm text-text-muted">{props.liveStreamName?.()?.trim?.() || 'No stream loaded'}</p>
+          <Title as="h3">{props.liveStreamName?.()?.trim?.() || 'No stream loaded'}</Title>
+          <p class="text-sm text-text-muted">Events Dashboard</p>
           <p class="text-xs text-text-muted">
             Live feed · {eventCount()} events · {interactionCount()} interaction
             pings
