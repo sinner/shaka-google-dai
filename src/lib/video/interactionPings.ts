@@ -1,11 +1,16 @@
 import { logger } from '@/lib/logger'
 
+/**
+ * Matches GAM / DAI interaction beacons for every livestream variant, e.g.
+ * - pubads.../pagead/live/interaction/...  (Google samples)
+ * - pubads.../pagead/interaction/...       (FAST channels)
+ * - dai.google.com/.../interaction/...
+ *
+ * A single `pagead/interaction` check does NOT match `/pagead/live/interaction/`
+ * because of the extra `/live/` path segment.
+ */
 function isDaiInteractionUrl(url: string): boolean {
-  // Real FAST channels use /pagead/interaction/; Google samples use /pagead/live/interaction/.
-  return (
-    url.includes('pagead/interaction') ||
-    (url.includes('dai.google.com') && url.includes('/interaction'))
-  )
+  return /\/interaction(\/|\?|$)/i.test(url)
 }
 
 export function observeDaiInteractionPings(

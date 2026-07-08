@@ -1,9 +1,48 @@
 # Google DAI + Shaka Player — Integration Reference
 
 **Project:** `google-dai-integration` (SolidJS debug SPA)  
-**Purpose:** Reproduce and debug server-side Google DAI with Shaka Player, aligned with the Samsung TV app (`caracol-samsung`).  
-**Live demo:** https://sinner.github.io/shaka-google-dai/manual-asset-key  
+**Purpose:** Reproduce and debug server-side Google DAI with Shaka Player, aligned with the Samsung TV app (`caracol-samsung`).
+**Repository:** https://github.com/sinner/shaka-google-dai
+**Live demo:** https://sinner.github.io/shaka-google-dai/manual-asset-key
 **Related internal doc:** `caracol-samsung/docs/general/14-DAI-INTEGRATION-CHALLENGES.md`
+
+---
+
+## Glossary
+
+Terms that appear often in this doc and in the challenges write-up. **VAST** and **FAST** are unrelated acronyms — they show up in the same DAI/streaming context but mean different things.
+
+### VAST (Video Ad Serving Template)
+
+An **IAB/Google XML standard** that describes a single video ad: creative URL, duration, click-through, and **tracking URLs** (impression, start, first quartile, midpoint, third quartile, complete).
+
+In server-side DAI, the chain looks like this:
+
+1. The stitched manifest carries timed metadata (`urn:google:dai:2018` tokens in `manifest.mpd`).
+2. Each token resolves through `id3-events.json` to a **VAST** document for that ad.
+3. The VAST contains the **`/interaction`** and impression beacon URLs that the IMA SDK fires as playback progresses.
+
+So when this doc says slates do not emit `/interaction` pings, it means: **slates are not VAST-backed ads** — there are no quartile or impression URLs for filler content, only for real creatives.
+
+### FAST (Free Ad-Supported Streaming TV)
+
+A **business/model term**, not a file format. Linear, TV-like channels streamed free to viewers and monetized with ads — e.g. **Ditu** and **Tastemade** in this project.
+
+| | **VAST** | **FAST** |
+|---|----------|----------|
+| **What it is** | Ad description format (XML) | Type of streaming service |
+| **Layer** | Ad tech / tracking | Content distribution model |
+| **In this project** | Source of `/interaction` tracking URLs | Label for production channels vs Google’s Tears of Steel sample |
+
+### Other terms (brief)
+
+| Term | Meaning |
+|------|---------|
+| **DAI** | Dynamic Ad Insertion — Google’s server-side ad stitching into live/VOD streams. |
+| **SSAI** | Server-Side Ad Insertion — same idea as DAI; often used interchangeably in player docs. |
+| **Slate** | Filler video stitched into the stream while ads are loading or fill is slow; not a VAST ad. |
+| **Ad pod / ad break** | A contiguous block of ad time (may include multiple ads + slates) before returning to content. |
+| **Interaction ping** | HTTP beacon to a GAM `/interaction` URL (quartile or related tracking), not the Shaka `ad-interaction` event alone. |
 
 ---
 
@@ -246,16 +285,31 @@ streamManager.addEventListener(Type.AD_BREAK_STARTED, onStarted)
 streamManager.addEventListener(Type.AD_BREAK_ENDED, onEnded)
 ```
 
-**Interaction pings** — `lib/video/interactionPings.ts` uses `PerformanceObserver` on `resource` entries:
+**Interaction pings** — `lib/video/interactionPings.ts` uses `PerformanceObserver` on `resource` entries and logs matching URLs to the Events Dashboard (`dai-interaction-ping`).
 
 ```typescript
 function isDaiInteractionUrl(url: string): boolean {
-  // Real FAST channels: /pagead/interaction/
-  // Google samples:       /pagead/live/interaction/
-  return url.includes('pagead/interaction') ||
-    (url.includes('dai.google.com') && url.includes('/interaction'))
+  // Matches /pagead/live/interaction/, /pagead/interaction/, dai.google.com/.../interaction/, etc.
+  return /\/interaction(\/|\?|$)/i.test(url)
 }
 ```
+
+#### Interaction ping URL matching (important for the Events Dashboard)
+
+GAM serves `/interaction` beacons on **different path shapes** depending on the asset. Both are valid; a naive substring check can hide pings for one stream while showing them for another:
+
+| Stream | Example path | Matches `pagead/interaction`? | Matches `pagead/live/interaction`? | Matches `/\/interaction(\/|\?|$)/`? |
+|--------|----------------|--------------------------------|-------------------------------------|--------------------------------------|
+| Tears of Steel (sample) | `.../pagead/**live**/interaction/...` | **No** (`/live/` is in the way) | Yes | Yes |
+| Ditu / Tastemade (FAST) | `.../pagead/interaction/...` | Yes | No | Yes |
+
+**Do not** rely on only `pagead/interaction` or only `pagead/live/interaction`. The regex above (implemented in `src/lib/video/interactionPings.ts`) catches every variant regardless of host (`pubads.g.doubleclick.net`, `googleads.g.doubleclick.net`, `dai.google.com`, etc.).
+
+**Dashboard checklist if pings look missing:**
+
+1. **Hide Interaction Ping** must be **unchecked** (default).
+2. Confirm `[GoogleDAI] DAI interaction ping` in the browser console — if console shows pings but the table does not, the filter is wrong; if neither shows, tracking is not firing (Section 6).
+3. **Slates do not produce `/interaction` pings** — only real creatives do. A break that is mostly slate will look “quiet” in the network column even when the player is healthy.
 
 Pings appear in the Events Dashboard under category **Network** / event `dai-interaction-ping`.
 
@@ -300,7 +354,7 @@ Use this debug app as the **known-good wiring reference**. If Tears of Steel pin
 
 | # | Trap | Fix |
 |---|------|-----|
-| 1 | **Beacon URL path** | Google sample (Tears of Steel) uses `pubads.g.doubleclick.net/pagead/**live**/interaction/`. Real FAST channels (Ditu, Tastemade) use `pubads.g.doubleclick.net/pagead/interaction/` (**no** `/live/`). Filter on substring `interaction/`, not `/live/interaction/`. |
+| 1 | **Beacon URL path / dashboard filter** | Sample uses `.../pagead/live/interaction/`; FAST channels use `.../pagead/interaction/`. **`pagead/interaction` does not match the sample path** (see §3.8 table). Use `/\/interaction(\/|\?|$)/` in code or filter on `/interaction` in DevTools — never only `/live/interaction/`. |
 | 2 | **Slates vs ads** | Real channels insert **~30 s slates** when fill is slow; Tears of Steel slates are ~0.1 s. **Slates do not emit `/interaction` pings** — only actual ads do. Do not count slate periods as “missing pings”. |
 | 3 | **First break vs later breaks** | Known symptom on real channels: break #1 fires full `ad-started` → quartiles → `/interaction`; break #2+ may play video with **zero** new ad events and **zero** pings. Compare against a clean session (new tab, tune channel directly — not after long session on another channel). |
 | 4 | **`timelineregionadded`** | On Tears of Steel this Shaka event fires continuously (~100+ per session). On Ditu it often fires **0 times** for the entire session. Instrument this event in the Samsung app to confirm metadata delivery. |
@@ -358,6 +412,37 @@ Log these **per ad break id** (from manifest period id or `id3-events.json`) to 
 
 **Definition of done (production):** On Ditu **and** Tastemade, three consecutive **ad-filled** breaks (not slate-only) each emit the full `/interaction` quartile chain plus impressions, verified in network logs.
 
+### 6.1 Opinion: Is “fixing slates” relevant for the Samsung TV app?
+
+**Short answer:** Slates are **highly relevant to diagnosis**, but **not something the Samsung TV web app can fix on its own**. Treating “remove slates in the player” as the fix will not resolve the interaction-ping problem.
+
+**What slates are:** On Ditu and Tastemade, Google DAI stitches **filler slate** into the live stream when ad decisioning is slow (~30 s is common). Tears of Steel (Google’s sample) uses negligible slate (~0.1 s). Slates are part of the **server-stitched manifest**, not a UI or Shaka configuration the TV app toggles.
+
+**What is expected vs broken:**
+
+| Behavior | Expected? | Notes |
+|----------|-----------|--------|
+| No `/interaction` pings **during slate-only** periods | **Yes** | Slates are not ads; VAST quartile/impression URLs apply to creatives, not filler. |
+| `/interaction` pings on **first ad-filled break** on Ditu/Tastemade | **Yes** (observed) | Proves wiring, `adTagParameters`, and IMA session setup can work on real FAST streams. |
+| `/interaction` pings on **break #2+** on Ditu/Tastemade | **Should work; currently broken** | Ads often still play; Shaka/IMA ad events and beacons frequently **stop after the first pod**. |
+| `/interaction` pings on **every break** on Tears of Steel | **Yes** (observed) | Known-good reference in this debug app and in the challenges doc. |
+
+**Why slates still matter:** The leading hypothesis (see `14-DAI-INTEGRATION-CHALLENGES.md` §10–11) is that a **long slate introduces a timeline discontinuity** in multi-period live DASH. After that discontinuity, Shaka stops delivering `urn:google:dai:2018` timed metadata to IMA (`timelineregionadded` ≈ 0 on Ditu for the whole session), and `StreamManager.processMetadata()` stops firing for later pods — even though `manifest.mpd` and `id3-events.json` still contain valid tokens. Tears of Steel avoids this because its slate window is too short to desync the stream-time ↔ content-time mapping the SDK relies on.
+
+**What the Samsung team should do (in priority order):**
+
+1. **Do not chase “slate bugs” in app code** — you cannot strip or skip slate periods in the client without breaking the stitched stream.
+2. **Do fix observability** — use the broad `/interaction` URL matcher (§3.8); do not conclude “no pings” because the DevTools filter only matches `/live/interaction/`.
+3. **Do separate slate silence from tracking failure** — during a slate, zero pings is normal; during a **filled ad pod on break #2+**, zero pings is the monetization bug.
+4. **Do pursue stream/player remedies with Google / Ad Ops**, not only front-end tweaks:
+   - Ask whether **HLS** delivery is available (different metadata carrier; SDK default).
+   - Escalate multi-period live DASH DAI issues to Google (Shaka [#2716](https://github.com/google/shaka-player/issues/2716), [#9039](https://github.com/google/shaka-player/issues/9039)) with HAR + manifest captures from break #1 (works) vs break #2 (fails).
+   - Experiment with **live-edge buffer** (`suggestedPresentationDelay`, DVR window) — secondary hypothesis, not proven.
+   - Discuss **slate/fill policy** with Ad Ops (shorter slates, higher fill) as a **business/stream config** lever, not a player patch.
+5. **Do not expect a Samsung-only glue-code fix** — manual `processMetadata()` forwarding did not revive pings after the first break in the challenges doc; the failure sits in IMA/Shaka timed-metadata delivery after the first pod.
+
+**Bottom line:** The slate difference between Tears of Steel and Ditu/Tastemade is a **strong clue pointing at timeline/metadata desync**, not a checklist item to “implement slate handling” in the TV app. The Samsung app should match this debug app’s DAI wiring (Section 5.1); if Tears works everywhere but real FAST channels fail on break #2+, invest in **Google/Shaka/stream-delivery** escalation rather than client-side slate workarounds.
+
 ---
 
 ## 7. Local development
@@ -381,3 +466,4 @@ pnpm dev
 - [Google DAI — timed metadata with Shaka](https://developers.google.com/ad-manager/dynamic-ad-insertion/sdk/html5/timed-metadata#shaka_player)
 - [Google DAI sample streams](https://developers.google.com/ad-manager/dynamic-ad-insertion/streams)
 - Shaka issues: [#2716](https://github.com/google/shaka-player/issues/2716), [#9039](https://github.com/shaka-project/shaka-player/issues/9039), [#9556](https://github.com/shaka-project/shaka-player/issues/9556)
+
