@@ -1,5 +1,8 @@
 import shaka from 'shaka-player'
 
+export const AD_BREAK_STARTED = 'ad-break-started'
+export const AD_BREAK_ENDED = 'ad-break-ended'
+
 export const TRACKED_AD_EVENTS = [
   shaka.ads.Utils.AD_PROGRESS,
   shaka.ads.Utils.AD_IMPRESSION,

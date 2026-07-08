@@ -1,7 +1,7 @@
 import shaka from 'shaka-player'
 import { logger } from '@/lib/logger'
 import { observeDaiInteractionPings } from '@/lib/video/interactionPings'
-import { TRACKED_AD_EVENTS } from '@/lib/video/adEvents'
+import { TRACKED_AD_EVENTS, AD_BREAK_STARTED, AD_BREAK_ENDED } from '@/lib/video/adEvents'
 import { daiEventsStore } from '@/stores/daiEventsStore'
 
 type AdManager = shaka.extern.IAdManager
@@ -90,14 +90,14 @@ function registerImaAdBreakListeners(
   const onStarted = (event: google.ima.dai.api.StreamEvent) => {
     const detail = formatImaStreamEventDetail(event)
     logger.event('IMA ad break started', { detail })
-    daiEventsStore.logAdEvent(shaka.ads.Utils.AD_BREAK_STARTED, detail)
+    daiEventsStore.logAdEvent(AD_BREAK_STARTED, detail)
     onAdBreakChange?.(true)
   }
 
   const onEnded = (event: google.ima.dai.api.StreamEvent) => {
     const detail = formatImaStreamEventDetail(event)
     logger.event('IMA ad break ended', { detail })
-    daiEventsStore.logAdEvent(shaka.ads.Utils.AD_BREAK_ENDED, detail)
+    daiEventsStore.logAdEvent(AD_BREAK_ENDED, detail)
     onAdBreakChange?.(false)
   }
 

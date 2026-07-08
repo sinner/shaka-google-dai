@@ -1,6 +1,42 @@
 import shaka from 'shaka-player'
 import { logger } from '@/lib/logger'
 
+type DaiAdElements = {
+  video: HTMLVideoElement
+  adContainer: HTMLDivElement
+  clientSideAdContainer: HTMLDivElement
+}
+
+type DaiCapableAdManager = shaka.extern.IAdManager & {
+  setContainers?: (
+    clientSideAdContainer: HTMLElement,
+    serverSideAdContainer: HTMLElement,
+  ) => void
+  initServerSide?: (
+    adContainer: HTMLElement,
+    video: HTMLMediaElement,
+  ) => void
+}
+
+export function configureDaiAdContainers(
+  adManager: shaka.extern.IAdManager,
+  elements: DaiAdElements,
+): void {
+  const manager = adManager as DaiCapableAdManager
+
+  if (typeof manager.setContainers === 'function') {
+    manager.setContainers(elements.clientSideAdContainer, elements.adContainer)
+    return
+  }
+
+  if (typeof manager.initServerSide === 'function') {
+    manager.initServerSide(elements.adContainer, elements.video)
+    return
+  }
+
+  logger.warn('AdManager has no DAI container setup method')
+}
+
 const LICENSE_CONTENT_TYPE = 'application/octet-stream'
 const playersWithLicenseFilter = new WeakSet<shaka.Player>()
 
@@ -101,9 +137,6 @@ export function applyDrmConfig(
       drm: {
         servers: {},
       },
-      manifest: {
-        ignoreDrmInfo: false,
-      },
     })
     return
   }
@@ -118,7 +151,9 @@ export function applyDrmConfig(
       },
     },
     manifest: {
-      ignoreDrmInfo: true,
+      dash: {
+        ignoreDrmInfo: true,
+      },
     },
   })
 
@@ -126,12 +161,9 @@ export function applyDrmConfig(
   logger.info('DRM license server configured', { licenseUrl })
 }
 
-export async function initShakaPlayer(
-  video: HTMLVideoElement,
-): Promise<shaka.Player> {
+export function initShakaPlayer(video: HTMLVideoElement): shaka.Player {
   shaka.polyfill.installAll()
-  const player = new shaka.Player()
-  await player.attach(video)
+  const player = new shaka.Player(video)
   registerLicenseRequestFilter(player)
   return player
 }

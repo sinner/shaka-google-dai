@@ -139,7 +139,7 @@ export function VideoPlayer(rawProps: VideoPlayerProps) {
           </div>
 
           <Show when={local.isAdBreakActive()}>
-            <div class="absolute top-3 left-3 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-amber-100 ring-1 ring-amber-400/40">
+            <div class="absolute top-3 left-3 rounded-lg bg-amber-500/20 px-3 py-1.5 text-xs font-medium text-white ring-1 ring-amber-400/40">
               Ad break — playback cannot be paused
             </div>
           </Show>

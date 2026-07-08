@@ -10,6 +10,7 @@ Live demo: [https://sinner.github.io/shaka-google-dai/](https://sinner.github.io
 - **Tailwind CSS v4** for styling
 - **@solidjs/router** for routing
 - **lucide-solid** for icons
+- **shaka-player** `4.12.2` (pinned — matches Samsung Smart TV app for DAI debugging)
 - **pnpm** as package manager
 
 ## Getting started

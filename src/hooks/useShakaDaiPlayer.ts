@@ -9,6 +9,7 @@ import { logger } from '@/lib/logger'
 import { createLiveStreamRequest, isImaDaiSdkAvailable } from '@/lib/video/daiStream'
 import {
   applyDrmConfig,
+  configureDaiAdContainers,
   initShakaPlayer,
   primeDrmCookies,
 } from '@/lib/video/shakaPlayer'
@@ -173,7 +174,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
       return
     }
 
-    player = await initShakaPlayer(elements.video)
+    player = initShakaPlayer(elements.video)
     adManager = player.getAdManager()
 
     if (!adManager) {
@@ -183,10 +184,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
       return
     }
 
-    adManager.setContainers(
-      elements.clientSideAdContainer,
-      elements.adContainer,
-    )
+    configureDaiAdContainers(adManager, elements)
     unregisterAdEvents = registerAdEventListeners(adManager)
     unregisterStreamManagerWatch = watchImaStreamManager(adManager, {
       onManager: (manager) => {
@@ -270,10 +268,7 @@ export function useShakaDaiPlayer(options: UseShakaDaiPlayerOptions = {}) {
         resetDaiStream(adManager, streamManager)
       }
 
-      adManager.setContainers(
-        elements.clientSideAdContainer,
-        elements.adContainer,
-      )
+      configureDaiAdContainers(adManager, elements)
 
       // Samsung/Hisense flow: VIDEOURL sets playback_token cookies that LICENSE needs.
       await primeDrmCookies(config.cookieResolverUrl)

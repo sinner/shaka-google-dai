@@ -15,8 +15,8 @@ importers:
         specifier: ^1.23.0
         version: 1.23.0(solid-js@1.9.14)
       shaka-player:
-        specifier: ^5.1.13
-        version: 5.1.13
+        specifier: 4.12.2
+        version: 4.12.2
       solid-js:
         specifier: ^1.9.13
         version: 1.9.14
@@ -451,6 +451,10 @@ packages:
   email-addresses@5.0.0:
     resolution: {integrity: sha512-4OIPYlA6JXqtVn8zpHpGiI7vE6EQOAg16aGnDMIAlZVinnoZ8208tW1hAbjWydgN/4PLTT9q+O1K6AH/vALJGw==}
 
+  eme-encryption-scheme-polyfill@2.2.4:
+    resolution: {integrity: sha512-04RxnYXZhddE7VFZ8OPoCR5lX1agj9vp1WIr4YfZgx3rMuYLQl0V1ycb9cw9HvW9kIefXqeFDrCUsy2regUguw==}
+    deprecated: Deprecated as a package and folded into Shaka Player directly
+
   enhanced-resolve@5.21.6:
     resolution: {integrity: sha512-aNnGCvbJ/RIyWo1IuhNdVjnNF+EjH9wpzpNHt+ci/m9He9LJvUN8wrCcXjp9cWsGNAuvSpVFTx/vraAFQ8qGjQ==}
     engines: {node: '>=10.13.0'}
@@ -759,8 +763,9 @@ packages:
     resolution: {integrity: sha512-46uFvgrXTVxZcUorgSSRZ4y+ieqLLQRMlG4bnCZKW3qI6BZm7Rg4ntMW4p1mILEEBZWrFlcpp0AyIIlM6jD9iw==}
     engines: {node: '>=10'}
 
-  shaka-player@5.1.13:
-    resolution: {integrity: sha512-bi1lWymlIgSbCuSwLu4v3Y+hNCX7PEk6LLcuo9dZ04gcbJnyR3FdPgHNGxaBJg4mrLKttlxOuXJWllM8DA/meg==}
+  shaka-player@4.12.2:
+    resolution: {integrity: sha512-WtOmrYtOSSKr1eZrKzvyE0JMBVKJeEOAnT/pjkYAqAO/lfAyu+YF/Y0GLsXKLu1JFlDSesKS8P78zdXCIkPk/Q==}
+    engines: {node: '>=14'}
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -1266,6 +1271,8 @@ snapshots:
 
   email-addresses@5.0.0: {}
 
+  eme-encryption-scheme-polyfill@2.2.4: {}
+
   enhanced-resolve@5.21.6:
     dependencies:
       graceful-fs: 4.2.11
@@ -1537,7 +1544,9 @@ snapshots:
 
   seroval@1.5.4: {}
 
-  shaka-player@5.1.13: {}
+  shaka-player@4.12.2:
+    dependencies:
+      eme-encryption-scheme-polyfill: 2.2.4
 
   slash@3.0.0: {}
 
